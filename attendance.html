@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arima:wght@100..700&family=DM+Serif+Text:ital@0;1&family=Tiro+Tamil:ital@0;1&display=swap">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style4.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary  border-info-subtle sticky-top" data-bs-theme="dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <img src="rfid (1).png" alt="card" width="70" height="60">
+              </a>
+            <a class="logo navbar-brand py-4 fs-3" href="#">AttendEase</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 text-uppercase gap-4">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/evolve/index.html"> 🏠︎ Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/evolve/attendance.html"> 🔴  Attendance</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/evolve/register.html">Register</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/evolve/login.html">Login</a>
+                    </li>
+                
+                    
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/evolve/contact.html">Contact Us</a>
+                    </li>
+                   
+                   
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <section>
+        <div class="datetime col-md-12">
+            <div class="time"></div>
+            <div class="date"></div>
+          </div>
+    </section>
+  
+   
+
+
+    <section id="records" class="summary">
+        <div class="container">
+            <h2 class="sum pb-4 fs-3">Summary</h2>
+            <div class="row">
+                <div class="col-md-12">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th scope="col">Student ID</th>
+                                <th scope="col">Student Name</th>
+                                <th scope="col">IN (Time)</th>
+                                <th scope="col">OUT (Time)</th>
+                                <th scope="col">Attendance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script>
+        // Fetch attendance records every 5 seconds
+        function fetchAttendance() {
+            fetch('attendance_api.php')
+                .then(response => response.json())
+                .then(data => {
+                    let tableBody = document.querySelector("tbody");
+                    tableBody.innerHTML = "";
+                    data.forEach(record => {
+                        let row = `<tr>
+                                    <td>${record.id}</td>
+                                    <td>${record.fullname}</td>
+                                    <td>${record.in_time}</td>
+                                    <td>${record.out_time || '---'}</td>
+                                    <td>${record.attendance_status}</td>
+                                  </tr>`;
+                        tableBody.innerHTML += row;
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching attendance records:", error);
+                });
+        }
+
+        // Fetch attendance every 5 seconds
+        setInterval(fetchAttendance, 0);
+
+        // Submit RFID form
+        document.getElementById("rfidForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form from reloading the page
+            let rfidCard = document.getElementById("rfid_card").value;
+
+            fetch('attendance_api.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `rfid=${rfidCard}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                let resultDiv = document.getElementById("rfidResult");
+                if (data.status === "in") {
+                    resultDiv.innerHTML = `<p class="text-success">Checked IN: ${data.fullname} at ${data.in_time}</p>`;
+                } else if (data.status === "out") {
+                    resultDiv.innerHTML = `<p class="text-success">Checked OUT: ${data.fullname} at ${data.out_time}</p>`;
+                } else {
+                    resultDiv.innerHTML = `<p class="text-danger">${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error("Error submitting RFID:", error);
+                document.getElementById("rfidResult").innerHTML = `<p class="text-danger">Error submitting RFID. Please try again.</p>`;
+            });
+
+            // Clear the input after submission
+            document.getElementById("rfid_card").value = "";
+        });
+    </script>
+
+    <!-- Scripts -->
+    <script src="attendance.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+      
+    
+</body>
+</html>
